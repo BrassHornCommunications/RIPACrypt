@@ -123,9 +123,8 @@ func NewCrypt(dataToStore string, Description string, CheckInDuration int64, Mis
 
 	if jsonResponseParseErr != nil {
 		return NewCryptAPIResponse{}, jsonResponseParseErr
-	} else {
-		return apiResponse, nil
 	}
+	return apiResponse, nil
 }
 
 // EncryptData simply takes a plaintext string and a public key armoured
@@ -159,9 +158,7 @@ func EncryptData(clearText, publicKey string) (string, error) {
 		encStr := base64.StdEncoding.EncodeToString(bytes)
 
 		return encStr, nil
-	} else {
-		//log.Println("Failed to read armoured keyring" + err.Error())
-		return "", err
 	}
+	return "", err
 
 }

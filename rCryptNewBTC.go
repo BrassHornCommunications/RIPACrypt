@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+// ClientBTCRequest describes the JSON payload required for requesting a new bitcoin address
 type ClientBTCRequest struct {
 	UserID      uint64 `json:"user_id"`
 	Challenge   string `json:"challenge"`
@@ -77,7 +78,6 @@ func GetBTC(conf CoreConf) (APIRegisterResponse, error) {
 
 	if jsonResponseParseErr != nil {
 		return APIRegisterResponse{}, jsonResponseParseErr
-	} else {
-		return apiResponse, nil
 	}
+	return apiResponse, nil
 }

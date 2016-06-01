@@ -79,9 +79,8 @@ func RIPACryptRegister(PublicKey string, useTor bool) (APIRegisterResponse, erro
 
 	if jsonResponseParseErr != nil {
 		return APIRegisterResponse{}, jsonResponseParseErr
-	} else {
-		return apiResponse, nil
 	}
+	return apiResponse, nil
 }
 
 // VerifyGPGPublicKey simply takes an armoured  GPG key and attemts to parse it
@@ -93,9 +92,8 @@ func VerifyGPGPublicKey(PublicKey string) (string, error) {
 
 	if armorErr != nil {
 		return "", armorErr
-	} else {
-		return entityList[0].PrimaryKey.KeyIdString(), nil
 	}
+	return entityList[0].PrimaryKey.KeyIdString(), nil
 }
 
 // RandStringRunes is used to generate pseudo random email addresses for the

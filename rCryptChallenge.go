@@ -67,11 +67,9 @@ func GetChallenge(UserID uint64, Fingerprint string, UseTor bool) (ChallengeAPIR
 	jsonResponseParseErr := json.Unmarshal(body, &apiResponse)
 	if jsonResponseParseErr != nil {
 		return ChallengeAPIResponse{}, jsonResponseParseErr
-	} else {
-		return apiResponse, nil
 	}
 
-	return ChallengeAPIResponse{}, nil
+	return apiResponse, nil
 }
 
 // DecryptChallenge will take an encrypted challenge nonce and a private key then decrypt the challenge and return the plaintext.

@@ -28,9 +28,14 @@ type CoreConf struct {
 }
 
 const (
-	RIPACRYPTURL  = "http://localhost:8080/1/"
+	// RIPACRYPTURL is the base URL for all queries
+	RIPACRYPTURL = "https://ripacrypt.download/1/"
+
+	// CLIENTVERSION is not currently used but useful to have
 	CLIENTVERSION = "1.0.0"
-	TORSOCKS      = "localhost:9050"
+
+	// TORSOCKS defines the SOCKS5 host we use if a user wants to use Tor
+	TORSOCKS = "localhost:9050"
 )
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -182,10 +187,9 @@ func main() {
 				fmt.Println("There was an error validating the generated public key")
 				fmt.Println(publicKeyErr)
 				return
-			} else {
-				PublicKeyFingerprint = fingerprint
-				fmt.Println("Successfully created your Public Key with fingerprint ", PublicKeyFingerprint)
 			}
+			PublicKeyFingerprint = fingerprint
+			fmt.Println("Successfully created your Public Key with fingerprint ", PublicKeyFingerprint)
 		} else {
 			b, fileReadErr := ioutil.ReadFile(*publicKeyFlag)
 			if fileReadErr != nil {
@@ -201,10 +205,9 @@ func main() {
 				fmt.Println("There was an error processing your public key")
 				fmt.Println(publicKeyErr)
 				return
-			} else {
-				PublicKeyFingerprint = fingerprint
-				fmt.Println("Successfully parsed your Public Key with fingerprint ", PublicKeyFingerprint)
 			}
+			PublicKeyFingerprint = fingerprint
+			fmt.Println("Successfully parsed your Public Key with fingerprint ", PublicKeyFingerprint)
 		}
 
 		//Public key stuff is complete, let's continue

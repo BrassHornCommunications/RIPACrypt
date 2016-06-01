@@ -69,9 +69,8 @@ func Checkin(conf CoreConf, cryptID string) (NewCryptAPIResponse, error) {
 	jsonResponseParseErr := json.Unmarshal(body, &apiResponse)
 	if jsonResponseParseErr != nil {
 		return NewCryptAPIResponse{}, jsonResponseParseErr
-	} else {
-		return apiResponse, nil
 	}
 
-	return NewCryptAPIResponse{}, nil
+	return apiResponse, nil
+
 }
