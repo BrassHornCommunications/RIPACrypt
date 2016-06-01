@@ -10,10 +10,13 @@ import (
 	"net/http"
 )
 
+// ClientChallengeRequest describes the JSON required for an API request.
 type ClientChallengeRequest struct {
 	UserID      uint64 `json:"user_id"`
 	Fingerprint string `json:"fingerprint"`
 }
+
+// ChallengeAPIResponse describes the JSON returned from the API.
 type ChallengeAPIResponse struct {
 	Challenge   string `json:"challenge"`
 	ChallengeID uint64 `json:"challenge_id"`
@@ -24,7 +27,7 @@ type ChallengeAPIResponse struct {
 	Version     int64  `json:"version"`
 }
 
-// GetChallenge will fetch a challenge nonce from the server
+// GetChallenge will fetch a challenge nonce from the server.
 func GetChallenge(UserID uint64, Fingerprint string, UseTor bool) (ChallengeAPIResponse, error) {
 
 	var client http.Client
@@ -71,8 +74,7 @@ func GetChallenge(UserID uint64, Fingerprint string, UseTor bool) (ChallengeAPIR
 	return ChallengeAPIResponse{}, nil
 }
 
-// DecryptChallenge will take an encrypted challenge nonce and a private key
-// then decrypt the challenge and return the plaintext
+// DecryptChallenge will take an encrypted challenge nonce and a private key then decrypt the challenge and return the plaintext.
 func DecryptChallenge(challenge, privatekey string) (string, error) {
 
 	keyBuffer := bytes.NewBufferString(privatekey)
