@@ -5,6 +5,7 @@ import (
 	"crypto"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"github.com/btcsuite/go-socks/socks"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/packet"
@@ -81,10 +82,14 @@ func NewCrypt(dataToStore string, Description string, CheckInDuration int64, Mis
 
 	challengeAPIResponse, challengeErr := GetChallenge(conf.UserID, conf.Fingerprint, conf.UseTor)
 
+	if challengeErr != nil {
+		return NewCryptAPIResponse{}, challengeErr
+	}
+
 	decryptedChallenge, decryptErr := DecryptChallenge(challengeAPIResponse.Challenge, conf.PrivateKey)
 
 	if decryptErr != nil {
-		return NewCryptAPIResponse{}, challengeErr
+		return NewCryptAPIResponse{}, decryptErr
 	}
 
 	jsonBuf, jsonErr := json.Marshal(ClientCryptRequest{UserID: conf.UserID,
@@ -124,7 +129,12 @@ func NewCrypt(dataToStore string, Description string, CheckInDuration int64, Mis
 	if jsonResponseParseErr != nil {
 		return NewCryptAPIResponse{}, jsonResponseParseErr
 	}
-	return apiResponse, nil
+
+	if apiResponse.Success == false {
+		return apiResponse, errors.New(apiResponse.Message)
+	} else {
+		return apiResponse, nil
+	}
 }
 
 // EncryptData simply takes a plaintext string and a public key armoured
