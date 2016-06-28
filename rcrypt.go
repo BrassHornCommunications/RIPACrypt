@@ -75,6 +75,14 @@ func main() {
 	useTorToCheckin := checkinCommand.Bool("usetor", false, "Enforce use of Tor SOCKS5 proxy")
 	debugCheckin := checkinCommand.Bool("debug", false, "See full JSON API response")
 
+	// Get
+	// Gets the crypt and decrypts it
+	getCommand := flag.NewFlagSet("get", flag.ExitOnError)
+	cryptIDGet := getCommand.String("crypt", "", "ID of the crypt")
+	useTorToGet := getCommand.Bool("usetor", false, "Enforce use of Tor SOCKS5 proxy")
+	debugGet := getCommand.Bool("debug", false, "See full JSON API response")
+	decryptGet := getCommand.Bool("decrypt", true, "Automatically decrypt the contents of the crypt")
+
 	// Challenge
 	// All write actions on RIPACrypt require the decryption of a challenge text which is sent by the server.
 	// This challenge is encrypted with the users public key.
@@ -117,6 +125,8 @@ func main() {
 		newCommand.Parse(os.Args[2:])
 	case "checkin":
 		checkinCommand.Parse(os.Args[2:])
+	case "get":
+		getCommand.Parse(os.Args[2:])
 	case "getchallenge":
 		challengeCommand.Parse(os.Args[2:])
 	case "newbtc":
@@ -137,7 +147,9 @@ func main() {
 
 		var PublicKey, PrivateKey, PublicKeyFingerprint string
 		if *publicKeyFlag == "" {
-			fmt.Println("No public key passed - generating our own one")
+			if *debugRegister == true {
+				fmt.Println("No public key passed - generating our own one")
+			}
 			var newEmail string
 
 			if *email == "" {
@@ -150,8 +162,11 @@ func main() {
 			if pgpGenErr != nil {
 				fmt.Println("There was an error generating a new GPG key for you")
 				fmt.Println(pgpGenErr)
+				return
 			}
-			fmt.Println("Signing identities")
+			if *debugRegister == true {
+				fmt.Println("Signing identities")
+			}
 			for _, id := range pgpEntity.Identities {
 				err := id.SelfSignature.SignUserId(id.UserId.Id, pgpEntity.PrimaryKey, pgpEntity.PrivateKey, nil)
 				if err != nil {
@@ -299,10 +314,14 @@ func main() {
 		}
 
 		if *useTorForNew == true || conf.UseTor == true {
-			fmt.Println("Using Tor to register a new crypt")
+			if *debugNewCrypt == true {
+				fmt.Println("Using Tor to register a new crypt")
+			}
 			conf.UseTor = true
 		} else {
-			fmt.Println("Connecting directly to create a new crypt")
+			if *debugNewCrypt == true {
+				fmt.Println("Connecting directly to create a new crypt")
+			}
 		}
 		//NewCrypt(dataToStore string, UserID uint64, Description string, CheckInDuration int, MissCount int, UseTor bool, IsEncrypted bool)
 
@@ -330,10 +349,14 @@ func main() {
 	//Challenge
 	if challengeCommand.Parsed() {
 		if *useTorForChallenge == true || conf.UseTor == true {
-			fmt.Println("Using Tor to request a challenge")
+			if *debugChallenge == true {
+				fmt.Println("Using Tor to request a challenge")
+			}
 			conf.UseTor = true
 		} else {
-			fmt.Println("Connecting directly to request a challenge")
+			if *debugChallenge == true {
+				fmt.Println("Connecting directly to request a challenge")
+			}
 		}
 
 		apiResponse, challengeErr := GetChallenge(conf.UserID, conf.Fingerprint, conf.UseTor)
@@ -372,10 +395,14 @@ func main() {
 	// New BTC -------------------------------------------------------------------
 	if newBTCCommand.Parsed() {
 		if *useTorForNewBTC == true || conf.UseTor == true {
-			fmt.Println("Using Tor to request a new bitcoin address")
+			if *debugNewBTC == true {
+				fmt.Println("Using Tor to request a new bitcoin address")
+			}
 			conf.UseTor = true
 		} else {
-			fmt.Println("Connecting directly to request a new bitcoin address")
+			if *debugNewBTC == true {
+				fmt.Println("Connecting directly to request a new bitcoin address")
+			}
 		}
 
 		apiResponse, newBTCErr := GetBTC(conf)
@@ -408,10 +435,14 @@ func main() {
 		}
 
 		if *useTorToCheckin == true || conf.UseTor == true {
-			fmt.Println("Using Tor to checkin with crypt " + *cryptIDFlag)
+			if *debugCheckin == true {
+				fmt.Println("Using Tor to checkin with crypt " + *cryptIDFlag)
+			}
 			conf.UseTor = true
 		} else {
-			fmt.Println("Connecting directly to checkin with crypt " + *cryptIDFlag)
+			if *debugCheckin == true {
+				fmt.Println("Connecting directly to checkin with crypt " + *cryptIDFlag)
+			}
 		}
 
 		apiResponse, checkinErr := Checkin(conf, *cryptIDFlag)
@@ -431,6 +462,83 @@ func main() {
 				}
 			}
 
+		}
+	}
+
+	//Get / Retrieve ----------------------------------------------------------------------
+	if getCommand.Parsed() {
+		if *cryptIDGet == "" {
+			fmt.Println("Cannot checkin without specifying a crypt id")
+			fmt.Println("Use -crypt=CRYPTID")
+			return
+		}
+
+		if *useTorToGet == true || conf.UseTor == true {
+			if *debugGet == true {
+				fmt.Println("Using Tor to checkin with crypt " + *cryptIDFlag)
+			}
+			conf.UseTor = true
+		} else {
+			if *debugGet == true {
+				fmt.Println("Connecting directly to checkin with crypt " + *cryptIDFlag)
+			}
+		}
+
+		apiResponse, getErr := GetCrypt(conf, *cryptIDGet)
+
+		if getErr != nil {
+			fmt.Println("There was an issue retrieving that crypt")
+			fmt.Println(getErr)
+		} else {
+			if *debugGet == true {
+				fmt.Println(apiResponse.Message)
+			}
+
+			//Decrypt and display the data
+			if apiResponse.StatusCode == 410 && apiResponse.CryptPayload.IsDestroyed == true {
+				fmt.Println("The retrieved crypt has been destroyed - there is no data to decrypt")
+			} else {
+
+				if *decryptGet == true {
+					plainText, decryptErr := DecryptCrypt(apiResponse.CryptPayload.CipherText, conf.PrivateKey)
+
+					if decryptErr != nil {
+						fmt.Println("There was an issue encountered trying to decrypt the crypt:")
+						fmt.Println(decryptErr)
+					} else {
+						if *debugGet == true {
+							fmt.Println("Crypt Contents:\n--------------")
+						}
+
+						fmt.Println(plainText)
+
+						if *debugGet == true {
+							fmt.Println("--------------")
+						}
+					}
+				} else {
+					if *debugGet == true {
+						fmt.Println("Crypt Contents:\n--------------")
+					}
+
+					fmt.Println(apiResponse.CryptPayload.CipherText)
+
+					if *debugGet == true {
+						fmt.Println("--------------")
+					}
+
+				}
+			}
+			if *debugGet == true {
+				debugBuffer, jsonMarshalErr := json.Marshal(apiResponse)
+
+				if jsonMarshalErr == nil {
+					fmt.Println("\nAPI Response:")
+					fmt.Println(string(debugBuffer))
+				} else {
+					fmt.Println("There was an error transforming the api response to a JSON entity")
+				}
+			}
 		}
 	}
 
