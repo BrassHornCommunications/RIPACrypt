@@ -57,15 +57,17 @@ type ClientCryptRequest struct {
 func NewCrypt(dataToStore string, Description string, CheckInDuration int64, MissCount int64, IsEncrypted bool, conf CoreConf) (NewCryptAPIResponse, error) {
 
 	var client http.Client
-	var encryptedData string
+	var encryptedData, URL string
 
 	if conf.UseTor == true {
+		URL = HSURL
 		proxy := &socks.Proxy{TORSOCKS, "", "", true}
 		tr := &http.Transport{
 			Dial: proxy.Dial,
 		}
 		client = http.Client{Transport: tr}
 	} else {
+		URL = RIPACRYPTURL
 		client = http.Client{}
 	}
 
@@ -105,7 +107,7 @@ func NewCrypt(dataToStore string, Description string, CheckInDuration int64, Mis
 		return NewCryptAPIResponse{}, jsonErr
 	}
 
-	req, httpReqErr := http.NewRequest("POST", RIPACRYPTURL+"crypt/new/", bytes.NewBuffer(jsonBuf))
+	req, httpReqErr := http.NewRequest("POST", URL+"crypt/new/", bytes.NewBuffer(jsonBuf))
 
 	if httpReqErr != nil {
 		return NewCryptAPIResponse{}, httpReqErr

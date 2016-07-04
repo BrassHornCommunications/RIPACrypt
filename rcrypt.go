@@ -31,6 +31,9 @@ const (
 	// RIPACRYPTURL is the base URL for all queries
 	RIPACRYPTURL = "https://ripacrypt.download/1/"
 
+	//HSURL is the base URL for the Tor Hidden Service instance
+	HSURL = "http://rcryptrz2t2gpxq7.onion/1/"
+
 	// CLIENTVERSION is not currently used but useful to have
 	CLIENTVERSION = "1.0.0"
 

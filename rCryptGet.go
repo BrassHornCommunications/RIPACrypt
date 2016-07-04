@@ -13,14 +13,17 @@ import (
 // GetCrypt takes a cryptID and various config options the retrieves the crypt
 func GetCrypt(conf CoreConf, cryptID string) (NewCryptAPIResponse, error) {
 	var client http.Client
+	var URL string
 
 	if conf.UseTor == true {
+		URL = HSURL
 		proxy := &socks.Proxy{TORSOCKS, "", "", true}
 		tr := &http.Transport{
 			Dial: proxy.Dial,
 		}
 		client = http.Client{Transport: tr}
 	} else {
+		URL = RIPACRYPTURL
 		client = http.Client{}
 	}
 
@@ -41,7 +44,7 @@ func GetCrypt(conf CoreConf, cryptID string) (NewCryptAPIResponse, error) {
 		return NewCryptAPIResponse{}, jsonErr
 	}*/
 
-	req, httpReqErr := http.NewRequest("GET", RIPACRYPTURL+"crypt/"+cryptID+"/", nil)
+	req, httpReqErr := http.NewRequest("GET", URL+"crypt/"+cryptID+"/", nil)
 	if httpReqErr != nil {
 		return NewCryptAPIResponse{}, httpReqErr
 	}

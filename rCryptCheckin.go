@@ -21,14 +21,17 @@ type ClientCheckinRequest struct {
 // the deadline for a crypt
 func Checkin(conf CoreConf, cryptID string) (NewCryptAPIResponse, error) {
 	var client http.Client
+	var URL string
 
 	if conf.UseTor == true {
+		URL = HSURL
 		proxy := &socks.Proxy{TORSOCKS, "", "", true}
 		tr := &http.Transport{
 			Dial: proxy.Dial,
 		}
 		client = http.Client{Transport: tr}
 	} else {
+		URL = RIPACRYPTURL
 		client = http.Client{}
 	}
 
@@ -49,7 +52,7 @@ func Checkin(conf CoreConf, cryptID string) (NewCryptAPIResponse, error) {
 		return NewCryptAPIResponse{}, jsonErr
 	}
 
-	req, httpReqErr := http.NewRequest("POST", RIPACRYPTURL+"crypt/"+cryptID+"/", bytes.NewBuffer(jsonBuf))
+	req, httpReqErr := http.NewRequest("POST", URL+"crypt/"+cryptID+"/", bytes.NewBuffer(jsonBuf))
 	if httpReqErr != nil {
 		return NewCryptAPIResponse{}, httpReqErr
 	}

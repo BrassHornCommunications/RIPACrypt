@@ -26,14 +26,17 @@ type ClientBTCRequest struct {
 // WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 func GetBTC(conf CoreConf) (APIRegisterResponse, error) {
 	var client http.Client
+	var URL string
 
 	if conf.UseTor == true {
+		URL = HSURL
 		proxy := &socks.Proxy{TORSOCKS, "", "", true}
 		tr := &http.Transport{
 			Dial: proxy.Dial,
 		}
 		client = http.Client{Transport: tr}
 	} else {
+		URL = RIPACRYPTURL
 		client = http.Client{}
 	}
 
@@ -54,7 +57,7 @@ func GetBTC(conf CoreConf) (APIRegisterResponse, error) {
 		return APIRegisterResponse{}, jsonErr
 	}
 
-	req, httpReqErr := http.NewRequest("POST", RIPACRYPTURL+"newbtc/", bytes.NewBuffer(jsonBuf))
+	req, httpReqErr := http.NewRequest("POST", URL+"newbtc/", bytes.NewBuffer(jsonBuf))
 
 	if httpReqErr != nil {
 		return APIRegisterResponse{}, httpReqErr

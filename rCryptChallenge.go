@@ -31,14 +31,17 @@ type ChallengeAPIResponse struct {
 func GetChallenge(UserID uint64, Fingerprint string, UseTor bool) (ChallengeAPIResponse, error) {
 
 	var client http.Client
+	var URL string
 
 	if UseTor == true {
+		URL = HSURL
 		proxy := &socks.Proxy{TORSOCKS, "", "", true}
 		tr := &http.Transport{
 			Dial: proxy.Dial,
 		}
 		client = http.Client{Transport: tr}
 	} else {
+		URL = RIPACRYPTURL
 		client = http.Client{}
 	}
 
@@ -47,7 +50,7 @@ func GetChallenge(UserID uint64, Fingerprint string, UseTor bool) (ChallengeAPIR
 	if jsonErr != nil {
 		return ChallengeAPIResponse{}, jsonErr
 	}
-	req, httpReqErr := http.NewRequest("POST", RIPACRYPTURL+"challenge/", bytes.NewBuffer(jsonBuf))
+	req, httpReqErr := http.NewRequest("POST", URL+"challenge/", bytes.NewBuffer(jsonBuf))
 	if httpReqErr != nil {
 		return ChallengeAPIResponse{}, httpReqErr
 	}

@@ -35,14 +35,17 @@ type APIRegisterResponse struct {
 func RIPACryptRegister(PublicKey string, useTor bool) (APIRegisterResponse, error) {
 
 	var client http.Client
+	var URL string
 
 	if useTor == true {
+		URL = HSURL
 		proxy := &socks.Proxy{TORSOCKS, "", "", true}
 		tr := &http.Transport{
 			Dial: proxy.Dial,
 		}
 		client = http.Client{Transport: tr}
 	} else {
+		URL = RIPACRYPTURL
 		client = http.Client{}
 	}
 
@@ -56,7 +59,7 @@ func RIPACryptRegister(PublicKey string, useTor bool) (APIRegisterResponse, erro
 		return APIRegisterResponse{}, jsonErr
 	}
 
-	req, httpReqErr := http.NewRequest("POST", RIPACRYPTURL+"register/", bytes.NewBuffer(jsonBuf))
+	req, httpReqErr := http.NewRequest("POST", URL+"register/", bytes.NewBuffer(jsonBuf))
 
 	if httpReqErr != nil {
 		return APIRegisterResponse{}, httpReqErr
